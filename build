@@ -1,0 +1,55 @@
+#!/bin/bash
+
+usage='USAGE: $0 [-m MODE, -f, -G CMAKE_GENERATOR]'
+mode='Release'
+cmake_generator='Ninja'
+
+echo 'project = Station'
+echo 'cmake_generator =' $cmake_generator
+
+while [ -n "$1" ] ; do
+    case $1 in
+        '-m' | '--mode')
+            case ${2,,} in
+                'd' | 'debug') mode='Debug' ;;
+                'r' | 'release') mode='Release' ;;
+            esac
+            ;;
+        '-f' | '--force-cmake-regen') force_cmake_regen=true ;;
+        '-G' | '--cmake-generator') cmake_generator=$2 ;;
+        '-h' | '--help')
+            echo $usage
+            exit
+            ;;
+        '--')
+            shift
+            break
+            ;;
+    esac
+    shift
+done
+
+project_src=$HOME/diploma/Station/Main/
+dir_build=$HOME/diploma/builds/Station/${mode,,}
+
+mkdir -p $dir_build
+cd $dir_build
+
+if [[ $? -eq 0 && ( ! -f $dir_build/CMakeCache.txt || $force_cmake_regen ) ]] ; then
+
+    cmake \
+        -G $cmake_generator \
+        -DCMAKE_INSTALL_PREFIX=$dir_build \
+        -DCMAKE_BUILD_TYPE=$mode \
+        $project_src
+fi
+
+if [[ $? -eq 0 ]] ; then
+    if [[ ! $nomake ]] ; then
+        if [[ $mode == 'Debug' ]] ; then
+            cmake --build . --target install -- -j`grep -c ^processor /proc/cpuinfo`
+        else
+            cmake --build . --target install/strip -- -j`grep -c ^processor /proc/cpuinfo`
+        fi
+    fi
+fi
