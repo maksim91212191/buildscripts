@@ -1,7 +1,7 @@
 #!/bin/bash
 
 usage='USAGE: $0 [-m MODE, -f, -G CMAKE_GENERATOR]'
-mode='Release'
+mode='Debug'
 cmake_generator='Ninja'
 
 echo 'project = Station'
